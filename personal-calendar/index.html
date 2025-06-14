@@ -131,5 +131,27 @@
     </div>
 
     <script src="./js/script.js"></script>
+    <!-- AI 어시스턴트 -->
+    <div class="ai-assistant minimized" id="aiAssistant">
+        <div class="ai-header" onclick="toggleAI()">
+            <div class="ai-title">🤖 AI 어시스턴트</div>
+            <button class="ai-toggle">−</button>
+        </div>
+        <div class="ai-chat">
+            <div class="ai-messages" id="aiMessages">
+                <div class="ai-message assistant">
+                    <div class="message-content">안녕하세요! 일정 관리를 도와드릴게요. 예: "내일 오후 2시에 회의 추가해줘"</div>
+                </div>
+            </div>
+            <div class="ai-input-area">
+                <input type="text" class="ai-input" id="aiInput" placeholder="일정을 말씀해주세요...">
+                <button class="ai-send" onclick="sendMessage()">→</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+    <script src="./js/script.js"></script>
 </body>
 </html>
