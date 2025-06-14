@@ -1415,3 +1415,169 @@ function isEventInTimeSlot(event, timeSlot) {
 
     return hour >= timeSlot.startHour && hour < timeSlot.endHour;
 }
+// ===== AI 어시스턴트 관련 함수들 =====
+
+// AI 어시스턴트 토글
+function toggleAI() {
+    const aiAssistant = document.getElementById('aiAssistant');
+    aiAssistant.classList.toggle('minimized');
+}
+
+// 메시지 전송
+function sendMessage() {
+    const input = document.getElementById('aiInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // 사용자 메시지 추가
+    addMessage(message, 'user');
+    input.value = '';
+    
+    // AI 응답 처리
+    processAICommand(message);
+}
+
+// 메시지 추가
+function addMessage(content, sender) {
+    const messagesContainer = document.getElementById('aiMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ${sender}`;
+    messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// AI 명령 처리
+function processAICommand(message) {
+    // 간단한 패턴 매칭으로 명령 분석
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('일정 추가') || lowerMessage.includes('약속') || lowerMessage.includes('회의')) {
+        handleAddEvent(message);
+    } else if (lowerMessage.includes('일정 보여') || lowerMessage.includes('스케줄')) {
+        handleShowSchedule();
+    } else if (lowerMessage.includes('삭제') || lowerMessage.includes('취소')) {
+        addMessage("죄송해요, 일정 삭제는 아직 지원하지 않아요. 직접 캘린더에서 삭제해주세요.", 'assistant');
+    } else {
+        addMessage("일정 추가, 조회 등을 도와드릴 수 있어요. 예: '내일 오후 2시에 회의 추가해줘'", 'assistant');
+    }
+}
+
+// 일정 추가 처리 (개선된 날짜 파싱)
+function handleAddEvent(message) {
+    const today = new Date();
+    let targetDate = new Date(today);
+    let dateFound = false;
+    
+    // 구체적인 날짜 추출 (6월 25일, 25일 등)
+    const specificDateMatch = message.match(/(\d{1,2})월\s*(\d{1,2})일|(\d{1,2})일/);
+    if (specificDateMatch) {
+        let month, day;
+        
+        if (specificDateMatch[1] && specificDateMatch[2]) {
+            // "6월 25일" 형태
+            month = parseInt(specificDateMatch[1]) - 1; // 0부터 시작
+            day = parseInt(specificDateMatch[2]);
+        } else if (specificDateMatch[3]) {
+            // "25일" 형태 (현재 월로 가정)
+            month = today.getMonth();
+            day = parseInt(specificDateMatch[3]);
+        }
+        
+        targetDate = new Date(today.getFullYear(), month, day);
+        
+        // 날짜가 과거면 다음 년도로
+        if (targetDate < today) {
+            targetDate.setFullYear(today.getFullYear() + 1);
+        }
+        
+        dateFound = true;
+        console.log(`구체적 날짜 파싱: ${month + 1}월 ${day}일 -> ${formatDate(targetDate)}`);
+    }
+    // 상대적 날짜 (내일, 모레 등)
+    else if (message.includes('내일')) {
+        targetDate.setDate(today.getDate() + 1);
+        dateFound = true;
+    } else if (message.includes('모레')) {
+        targetDate.setDate(today.getDate() + 2);
+        dateFound = true;
+    } else if (message.includes('다음주')) {
+        targetDate.setDate(today.getDate() + 7);
+        dateFound = true;
+    }
+    
+    // 시간 추출 개선
+    let startHour = 9; // 기본값
+    let endHour = 10;
+    
+    const timeMatch = message.match(/(\d{1,2})시/);
+    if (timeMatch) {
+        startHour = parseInt(timeMatch[1]);
+        
+        // 오후 처리
+        if (message.includes('오후') && startHour < 12) {
+            startHour += 12;
+        }
+        // 오전 명시적 처리
+        else if (message.includes('오전') && startHour === 12) {
+            startHour = 0;
+        }
+        
+        endHour = startHour + 1;
+    }
+    
+    // 시간 범위 추출 (예: "2시부터 4시까지")
+    const timeRangeMatch = message.match(/(\d{1,2})시(?:부터|에서|\~|-)?\s*(\d{1,2})시/);
+    if (timeRangeMatch) {
+        startHour = parseInt(timeRangeMatch[1]);
+        endHour = parseInt(timeRangeMatch[2]);
+        
+        if (message.includes('오후')) {
+            if (startHour < 12) startHour += 12;
+            if (endHour < 12) endHour += 12;
+        }
+    }
+    
+    // 일정 제목 추출 개선
+    let title = '새 일정';
+    if (message.includes('회의')) title = '회의';
+    else if (message.includes('약속')) title = '약속';
+    else if (message.includes('미팅')) title = '미팅';
+    else if (message.includes('수업')) title = '수업';
+    else if (message.includes('운동')) title = '운동';
+    else if (message.includes('식사') || message.includes('밥')) title = '식사';
+    else if (message.includes('병원')) title = '병원';
+    else if (message.includes('데이트')) title = '데이트';
+    
+    // 일정 추가
+    const dateKey = formatDate(targetDate);
+    const newEvent = {
+        id: Date.now(),
+        title: title,
+        startTime: `${startHour.toString().padStart(2, '0')}:00`,
+        endTime: `${endHour.toString().padStart(2, '0')}:00`,
+        isAllDay: false,
+        color: 'blue',
+        description: `AI로 추가된 일정: ${message}`,
+        priority: 'normal',
+        createdAt: new Date().toISOString()
+    };
+    
+    if (!events[dateKey]) {
+        events[dateKey] = [];
+    }
+    
+    events[dateKey].push(newEvent);
+    saveEventsToStorage();
+    renderCalendar();
+    
+    // 응답 메시지 개선
+    const koreanDate = targetDate.toLocaleDateString('ko-KR', {
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short'
+    });
+    
+    addMessage(`✅ ${koreanDate}에 "${title}" 일정을 추가했어요! (${startHour}:00-${endHour}:00)`, 'assistant');
+}
