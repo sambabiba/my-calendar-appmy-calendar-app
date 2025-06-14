@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인 캘린더</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="calendar-title">📅 개인 캘린더</div>
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="previousPeriod()">← 이전</button>
+                <div class="view-toggle">
+                    <button id="monthViewBtn" class="active" onclick="switchToMonthView()">월간</button>
+                    <button id="weekViewBtn" onclick="switchToWeekView()">주간</button>
+                </div>
+                <div class="current-month" id="currentMonth"></div>
+                <button class="nav-btn" onclick="nextPeriod()">다음 →</button>
+            </div>
+        </div>
+        
+        <div class="calendar-body">
+            <!-- 월간 보기 -->
+            <div class="month-view" id="monthView">
+                <div class="weekdays">
+                    <div class="weekday">일</div>
+                    <div class="weekday">월</div>
+                    <div class="weekday">화</div>
+                    <div class="weekday">수</div>
+                    <div class="weekday">목</div>
+                    <div class="weekday">금</div>
+                    <div class="weekday">토</div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- 주간 보기 -->
+            <div class="week-view" id="weekView">
+                <div class="week-header" id="weekHeader"></div>
+                <div class="week-grid" id="weekGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 일정 관리 모달 -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">일정 관리</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- 선택된 날짜 표시 -->
+                <div class="form-group">
+                    <label>선택된 날짜</label>
+                    <div id="selectedDate" style="padding: 10px; background: #f8f9fa; border-radius: 8px; font-weight: 600; color: #667eea;"></div>
+                </div>
+                
+                <!-- 기존 일정 목록 -->
+                <div id="eventList" class="event-list"></div>
+                
+                <!-- 새 일정 추가 폼 -->
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="eventTitle">일정 제목 *</label>
+                        <input type="text" id="eventTitle" placeholder="예: 친구와 점심 약속" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>시간 설정</label>
+                        <div class="time-section" id="timeSection">
+                            <div class="all-day-toggle" onclick="toggleAllDay()">
+                                <input type="checkbox" id="allDayCheck">
+                                <label for="allDayCheck">하루 종일</label>
+                            </div>
+                            
+                            <div class="time-inputs" id="timeInputs">
+                                <div class="time-input-group">
+                                    <label for="startTime">시작 시간</label>
+                                    <input type="time" id="startTime">
+                                </div>
+                                <div class="time-input-group">
+                                    <label for="endTime">종료 시간</label>
+                                    <input type="time" id="endTime">
+                                </div>
+                                <div class="duration-display hidden" id="durationDisplay"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventDescription">상세 내용 (선택사항)</label>
+                        <textarea id="eventDescription" placeholder="추가 정보를 입력하세요..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventPriority">중요도</label>
+                        <select id="eventPriority">
+                            <option value="normal">보통</option>
+                            <option value="high">높음</option>
+                            <option value="low">낮음</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>일정 색상</label>
+                        <div class="color-picker-group">
+                            <div class="color-option color-blue selected" data-color="blue" title="파란색"></div>
+                            <div class="color-option color-red" data-color="red" title="빨간색"></div>
+                            <div class="color-option color-green" data-color="green" title="초록색"></div>
+                            <div class="color-option color-yellow" data-color="yellow" title="노란색"></div>
+                            <div class="color-option color-purple" data-color="purple" title="보라색"></div>
+                            <div class="color-option color-orange" data-color="orange" title="주황색"></div>
+                            <div class="color-option color-pink" data-color="pink" title="분홍색"></div>
+                            <div class="color-option color-teal" data-color="teal" title="청록색"></div>
+                            <div class="color-option color-indigo" data-color="indigo" title="남색"></div>
+                            <div class="color-option color-gray" data-color="gray" title="회색"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
+                        <button type="submit" class="btn">일정 추가</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/script.js"></script>
+</body>
+</html>
