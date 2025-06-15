@@ -1,4 +1,3 @@
-// ===== 전역 변수 =====
 let currentDate = new Date();
 let today = new Date();
 let selectedDate = null; // 모달에서 선택된 날짜
