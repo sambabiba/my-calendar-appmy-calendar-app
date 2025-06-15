@@ -1,4 +1,4 @@
-let currentDate = new Date();
+let MYcurrentDate = new Date();
 let today = new Date();
 let selectedDate = null; // 모달에서 선택된 날짜
 let events = {}; // 일정 저장 객체 {날짜: [일정들]}
