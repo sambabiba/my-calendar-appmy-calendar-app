@@ -3,8 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
-// 정적 파일 서빙 (CSS, JS, 이미지 등)
-app.use('/static', express.static('.'));
+// 정적 파일 서빙 - 모든 파일과 폴더를 그대로 제공
+app.use(express.static('.'));
 
 // 메인 페이지 - 환경변수를 HTML에 주입
 app.get('/', (req, res) => {
@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
     <script>
         // Azure 환경변수에서 API 키 설정
         window.GEMINI_API_KEY = '${process.env.GEMINI_API_KEY || ''}';
-        console.log('✅ 서버에서 환경변수 주입:', window.GEMINI_API_KEY ? '설정됨' : '설정안됨');
+        console.log('✅ 서버에서 환경변수 주입:', window.GEMINI_API_KEY ? 'API 키 설정됨' : 'API 키 없음');
     </script>
 </head>`;
     
@@ -27,25 +27,17 @@ app.get('/', (req, res) => {
     res.send(html);
   } catch (error) {
     console.error('HTML 파일 읽기 오류:', error);
-    res.status(500).send('서버 오류가 발생했습니다.');
+    res.status(500).send(`
+      <h1>서버 오류</h1>
+      <p>index.html 파일을 찾을 수 없습니다.</p>
+      <p>오류: ${error.message}</p>
+    `);
   }
 });
-
-// script.js 파일 제공 (정적 파일로)
-app.get('/script.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'script.js'));
-});
-
-// CSS 파일 제공
-app.get('/style.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'style.css'));
-});
-
-// 기타 정적 파일들
-app.use(express.static('.'));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`🚀 서버가 포트 ${port}에서 실행중입니다`);
     console.log(`🔑 GEMINI_API_KEY 환경변수:`, process.env.GEMINI_API_KEY ? '설정됨' : '설정안됨');
+    console.log(`📂 현재 디렉토리:`, __dirname);
 });
